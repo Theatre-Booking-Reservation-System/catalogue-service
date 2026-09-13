@@ -1,0 +1,28 @@
+package com.theatre.catalogueservice.model;
+
+import com.theatre.catalogueservice.util.Language;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.util.UUID;
+
+@EqualsAndHashCode(callSuper = true)
+@Data
+@SuperBuilder
+public class ProductionResponse extends CommonResponse {
+    private UUID productionId;
+    private String titleEn;
+    private String titleSi;
+    private String titleTa;
+    private Language language;
+    private String genre;
+    private String descriptionEn;
+    private String descriptionSi;
+    private String descriptionTa;
+    private BigDecimal baseTicketCost;
+    private LocalDate releaseDate;
+    private Integer status;
+}
