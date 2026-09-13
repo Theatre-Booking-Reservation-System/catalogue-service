@@ -1,7 +1,9 @@
 package com.theatre.catalogueservice.controller;
 
+import com.theatre.catalogueservice.model.PerformanceListResponse;
 import com.theatre.catalogueservice.model.ProductionListResponse;
 import com.theatre.catalogueservice.model.ProductionResponse;
+import com.theatre.catalogueservice.service.PerformanceService;
 import com.theatre.catalogueservice.service.ProductionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +20,7 @@ import java.util.UUID;
 public class ProductionController {
 
     private final ProductionService productionService;
+    private final PerformanceService performanceService;
 
     @GetMapping
     public ResponseEntity<ProductionListResponse> getAllProductions() {
@@ -27,6 +30,11 @@ public class ProductionController {
     @GetMapping("/{id}")
     public ResponseEntity<ProductionResponse> getProductionById(@PathVariable UUID id) {
         return ResponseEntity.ok(productionService.getProductionById(id));
+    }
+
+    @GetMapping("/{id}/performances")
+    public ResponseEntity<PerformanceListResponse> getPerformancesByProductionId(@PathVariable UUID id) {
+        return ResponseEntity.ok(performanceService.getPerformancesByProductionId(id));
     }
 
 }
