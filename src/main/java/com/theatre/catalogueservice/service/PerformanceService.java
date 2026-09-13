@@ -3,14 +3,18 @@ package com.theatre.catalogueservice.service;
 import com.theatre.catalogueservice.exception.ServiceException;
 import com.theatre.catalogueservice.model.PerformanceItem;
 import com.theatre.catalogueservice.model.PerformanceListResponse;
+import com.theatre.catalogueservice.model.PerformanceRequest;
+import com.theatre.catalogueservice.model.PerformanceResponse;
 import com.theatre.catalogueservice.repository.PerformanceRepository;
 import com.theatre.catalogueservice.repository.ProductionRepository;
 import com.theatre.catalogueservice.repository.model.Performance;
 import com.theatre.catalogueservice.util.ErrorCode;
+import com.theatre.catalogueservice.util.ProductionStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -34,6 +38,80 @@ public class PerformanceService {
 
         return PerformanceListResponse.builder()
                 .performances(performances)
+                .build();
+    }
+
+    public PerformanceResponse getPerformanceById(UUID id) {
+        return performanceRepository.findById(id)
+                .map(this::toPerformanceResponse)
+                .orElseThrow(() -> new ServiceException(ErrorCode.PERFORMANCE_NOT_FOUND));
+    }
+
+    @Transactional
+    public PerformanceResponse createPerformance(PerformanceRequest request, String email) {
+        if (!productionRepository.existsById(request.getProductionId())) {
+            throw new ServiceException(ErrorCode.PRODUCTION_NOT_FOUND);
+        }
+
+        Performance performance = new Performance();
+        applyRequest(performance, request);
+        performance.setStatus(request.getStatus() != null
+                ? request.getStatus()
+                : ProductionStatus.ACTIVE.getValue());
+        performance.setAddedBy(email);
+        performance.setAddedDate(LocalDateTime.now());
+
+        return toPerformanceResponse(performanceRepository.save(performance));
+    }
+
+    @Transactional
+    public PerformanceResponse updatePerformance(UUID id, PerformanceRequest request, String email) {
+        Performance performance = performanceRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(ErrorCode.PERFORMANCE_NOT_FOUND));
+
+        applyRequest(performance, request);
+        if (request.getStatus() != null) {
+            performance.setStatus(request.getStatus());
+        }
+        performance.setModifiedBy(email);
+        performance.setModifiedDate(LocalDateTime.now());
+
+        return toPerformanceResponse(performanceRepository.save(performance));
+    }
+
+    @Transactional
+    public void deletePerformance(UUID id, String email) {
+        Performance performance = performanceRepository.findById(id)
+                .orElseThrow(() -> new ServiceException(ErrorCode.PERFORMANCE_NOT_FOUND));
+
+        performance.setStatus(ProductionStatus.ARCHIVED.getValue());
+        performance.setModifiedBy(email);
+        performance.setModifiedDate(LocalDateTime.now());
+
+        performanceRepository.save(performance);
+    }
+
+    private void applyRequest(Performance performance, PerformanceRequest request) {
+        performance.setProductionId(request.getProductionId());
+        performance.setDate(request.getDate());
+        performance.setTime(request.getTime());
+        performance.setSessionType(request.getSessionType());
+        performance.setReleaseDate(request.getReleaseDate());
+        performance.setEarlyAccessOpensAt(request.getEarlyAccessOpensAt());
+        performance.setIsEarlyAccessActive(request.getIsEarlyAccessActive());
+    }
+
+    private PerformanceResponse toPerformanceResponse(Performance p) {
+        return PerformanceResponse.builder()
+                .performanceId(p.getPerformanceId())
+                .productionId(p.getProductionId())
+                .date(p.getDate())
+                .time(p.getTime())
+                .sessionType(p.getSessionType())
+                .releaseDate(p.getReleaseDate())
+                .earlyAccessOpensAt(p.getEarlyAccessOpensAt())
+                .isEarlyAccessActive(p.getIsEarlyAccessActive())
+                .status(p.getStatus())
                 .build();
     }
 
