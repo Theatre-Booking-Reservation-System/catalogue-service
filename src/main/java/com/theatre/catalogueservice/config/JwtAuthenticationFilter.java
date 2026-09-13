@@ -49,11 +49,15 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         // Only set authentication if not already established for this request
         if (SecurityContextHolder.getContext().getAuthentication() == null) {
-            String subject = jwtService.extractSubject(token);
+            AuthenticatedUser principal = new AuthenticatedUser(
+                    jwtService.extractSubject(token),
+                    jwtService.extractEmail(token),
+                    jwtService.extractRole(token)
+            );
 
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(
-                            subject,
+                            principal,
                             null,
                             List.of(new SimpleGrantedAuthority("ROLE_USER"))
                     );
