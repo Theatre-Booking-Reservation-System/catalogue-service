@@ -6,6 +6,11 @@ import com.theatre.catalogueservice.model.ProductionRequest;
 import com.theatre.catalogueservice.model.ProductionResponse;
 import com.theatre.catalogueservice.service.PerformanceService;
 import com.theatre.catalogueservice.service.ProductionService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,44 +30,91 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/productions")
 @RequiredArgsConstructor
+@Tag(name = "Productions", description = "Create, read, update and delete theatre productions and list their performances")
 public class ProductionController {
 
     private final ProductionService productionService;
     private final PerformanceService performanceService;
 
+    @Operation(summary = "List all productions",
+            description = "Returns every production in the catalogue.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Productions returned"),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
     @GetMapping
     public ResponseEntity<ProductionListResponse> getAllProductions() {
         return ResponseEntity.ok(productionService.getAllProductions());
     }
 
+    @Operation(summary = "Get a production by id",
+            description = "Returns a single production identified by its UUID.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Production found"),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+            @ApiResponse(responseCode = "404", description = "No production exists for the given id")
+    })
     @GetMapping("/{id}")
-    public ResponseEntity<ProductionResponse> getProductionById(@PathVariable UUID id) {
+    public ResponseEntity<ProductionResponse> getProductionById(
+            @Parameter(description = "Unique identifier of the production") @PathVariable UUID id) {
         return ResponseEntity.ok(productionService.getProductionById(id));
     }
 
+    @Operation(summary = "Create a production",
+            description = "Creates a new production. The authenticated user is recorded as the creator.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Production created"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body"),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
     @PostMapping
     public ResponseEntity<ProductionResponse> createProduction(@RequestBody ProductionRequest request,
-                                                               @AuthenticationPrincipal AuthenticatedUser user) {
+                                                               @Parameter(hidden = true) @AuthenticationPrincipal AuthenticatedUser user) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(productionService.createProduction(request, user.displayName()));
     }
 
+    @Operation(summary = "Update a production",
+            description = "Updates an existing production identified by its UUID.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Production updated"),
+            @ApiResponse(responseCode = "400", description = "Invalid request body"),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+            @ApiResponse(responseCode = "404", description = "No production exists for the given id")
+    })
     @PutMapping("/{id}")
-    public ResponseEntity<ProductionResponse> updateProduction(@PathVariable UUID id,
-                                                               @RequestBody ProductionRequest request,
-                                                               @AuthenticationPrincipal AuthenticatedUser user) {
+    public ResponseEntity<ProductionResponse> updateProduction(
+            @Parameter(description = "Unique identifier of the production") @PathVariable UUID id,
+            @RequestBody ProductionRequest request,
+            @Parameter(hidden = true) @AuthenticationPrincipal AuthenticatedUser user) {
         return ResponseEntity.ok(productionService.updateProduction(id, request, user.displayName()));
     }
 
+    @Operation(summary = "Delete a production",
+            description = "Deletes an existing production identified by its UUID.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Production deleted"),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+            @ApiResponse(responseCode = "404", description = "No production exists for the given id")
+    })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduction(@PathVariable UUID id,
-                                                 @AuthenticationPrincipal AuthenticatedUser user) {
+    public ResponseEntity<Void> deleteProduction(
+            @Parameter(description = "Unique identifier of the production") @PathVariable UUID id,
+            @Parameter(hidden = true) @AuthenticationPrincipal AuthenticatedUser user) {
         productionService.deleteProduction(id, user.displayName());
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "List performances for a production",
+            description = "Returns every performance scheduled for the given production.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Performances returned"),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+            @ApiResponse(responseCode = "404", description = "No production exists for the given id")
+    })
     @GetMapping("/{id}/performances")
-    public ResponseEntity<PerformanceListResponse> getPerformancesByProductionId(@PathVariable UUID id) {
+    public ResponseEntity<PerformanceListResponse> getPerformancesByProductionId(
+            @Parameter(description = "Unique identifier of the production") @PathVariable UUID id) {
         return ResponseEntity.ok(performanceService.getPerformancesByProductionId(id));
     }
 
