@@ -5,15 +5,22 @@ import com.theatre.catalogueservice.model.PerformanceItem;
 import com.theatre.catalogueservice.model.PerformanceListResponse;
 import com.theatre.catalogueservice.model.PerformanceRequest;
 import com.theatre.catalogueservice.model.PerformanceResponse;
+import com.theatre.catalogueservice.model.PerformanceSearchResponse;
 import com.theatre.catalogueservice.repository.PerformanceRepository;
 import com.theatre.catalogueservice.repository.ProductionRepository;
 import com.theatre.catalogueservice.repository.model.Performance;
+import com.theatre.catalogueservice.repository.spec.PerformanceSpecifications;
 import com.theatre.catalogueservice.util.ErrorCode;
 import com.theatre.catalogueservice.util.ProductionStatus;
+import com.theatre.catalogueservice.util.SessionType;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -38,6 +45,28 @@ public class PerformanceService {
 
         return PerformanceListResponse.builder()
                 .performances(performances)
+                .build();
+    }
+
+    public PerformanceSearchResponse search(UUID productionId, LocalDate dateFrom, LocalDate dateTo,
+                                            SessionType sessionType, Integer status, Pageable pageable) {
+        Specification<Performance> spec = Specification.allOf(
+                PerformanceSpecifications.forProduction(productionId),
+                PerformanceSpecifications.dateFrom(dateFrom),
+                PerformanceSpecifications.dateTo(dateTo),
+                PerformanceSpecifications.hasSessionType(sessionType),
+                PerformanceSpecifications.hasStatus(status)
+        );
+
+        Page<PerformanceItem> result = performanceRepository.findAll(spec, pageable)
+                .map(this::toPerformanceModel);
+
+        return PerformanceSearchResponse.builder()
+                .content(result.getContent())
+                .page(result.getNumber())
+                .size(result.getSize())
+                .totalElements(result.getTotalElements())
+                .totalPages(result.getTotalPages())
                 .build();
     }
 

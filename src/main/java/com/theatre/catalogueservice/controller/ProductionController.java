@@ -4,6 +4,8 @@ import com.theatre.catalogueservice.model.PerformanceListResponse;
 import com.theatre.catalogueservice.model.ProductionListResponse;
 import com.theatre.catalogueservice.model.ProductionRequest;
 import com.theatre.catalogueservice.model.ProductionResponse;
+import com.theatre.catalogueservice.model.ProductionSearchResponse;
+import com.theatre.catalogueservice.model.ProductionSummaryResponse;
 import com.theatre.catalogueservice.service.PerformanceService;
 import com.theatre.catalogueservice.service.ProductionService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -12,6 +14,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.theatre.catalogueservice.config.AuthenticatedUser;
@@ -23,6 +27,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.UUID;
@@ -45,6 +50,39 @@ public class ProductionController {
     @GetMapping
     public ResponseEntity<ProductionListResponse> getAllProductions() {
         return ResponseEntity.ok(productionService.getAllProductions());
+    }
+
+    @Operation(summary = "Search productions (paginated)",
+            description = "Paginated, filterable search for the Productions page. "
+                    + "Filter by free-text (title/genre), status (1=Active, 9=Inactive), and "
+                    + "upcoming (true = release date in the future). Supports page, size and sort "
+                    + "query params, e.g. ?page=0&size=10&sort=releaseDate,desc.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Matching productions returned"),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
+    @GetMapping("/search")
+    public ResponseEntity<ProductionSearchResponse> searchProductions(
+            @Parameter(description = "Free-text search over titles and genre")
+            @RequestParam(required = false) String q,
+            @Parameter(description = "Exact status filter: 1=Active, 9=Inactive/Archived")
+            @RequestParam(required = false) Integer status,
+            @Parameter(description = "true = upcoming (release date in future), false = already running")
+            @RequestParam(required = false) Boolean upcoming,
+            @Parameter(hidden = true) @PageableDefault(size = 10, sort = "releaseDate") Pageable pageable) {
+        return ResponseEntity.ok(productionService.search(q, status, upcoming, pageable));
+    }
+
+    @Operation(summary = "Production summary counts",
+            description = "Aggregate counts for the dashboard 'Active Productions' widget: "
+                    + "active (running), upcoming (releasing later), inactive (archived) and total.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Summary counts returned"),
+            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+    })
+    @GetMapping("/summary")
+    public ResponseEntity<ProductionSummaryResponse> productionSummary() {
+        return ResponseEntity.ok(productionService.summary());
     }
 
     @Operation(summary = "Get a production by id",

@@ -5,14 +5,21 @@ import com.theatre.catalogueservice.model.ProductionItem;
 import com.theatre.catalogueservice.model.ProductionListResponse;
 import com.theatre.catalogueservice.model.ProductionRequest;
 import com.theatre.catalogueservice.model.ProductionResponse;
+import com.theatre.catalogueservice.model.ProductionSearchResponse;
+import com.theatre.catalogueservice.model.ProductionSummaryResponse;
 import com.theatre.catalogueservice.repository.ProductionRepository;
 import com.theatre.catalogueservice.repository.model.Production;
+import com.theatre.catalogueservice.repository.spec.ProductionSpecifications;
 import com.theatre.catalogueservice.util.ErrorCode;
 import com.theatre.catalogueservice.util.ProductionStatus;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -32,6 +39,42 @@ public class ProductionService {
 
         return ProductionListResponse.builder()
                 .productions(productions)
+                .build();
+    }
+
+    public ProductionSearchResponse search(String q, Integer status, Boolean upcoming, Pageable pageable) {
+        Specification<Production> spec = Specification.allOf(
+                ProductionSpecifications.textContains(q),
+                ProductionSpecifications.hasStatus(status),
+                ProductionSpecifications.upcoming(upcoming, LocalDate.now())
+        );
+
+        Page<ProductionItem> result = productionRepository.findAll(spec, pageable)
+                .map(this::toProductionModel);
+
+        return ProductionSearchResponse.builder()
+                .content(result.getContent())
+                .page(result.getNumber())
+                .size(result.getSize())
+                .totalElements(result.getTotalElements())
+                .totalPages(result.getTotalPages())
+                .build();
+    }
+
+    public ProductionSummaryResponse summary() {
+        LocalDate today = LocalDate.now();
+        int activeStatus = ProductionStatus.ACTIVE.getValue();
+        int archivedStatus = ProductionStatus.ARCHIVED.getValue();
+
+        long activeTotal = productionRepository.countByStatus(activeStatus);
+        long upcoming = productionRepository.countByStatusAndReleaseDateAfter(activeStatus, today);
+        long inactive = productionRepository.countByStatus(archivedStatus);
+
+        return ProductionSummaryResponse.builder()
+                .active(activeTotal - upcoming)
+                .upcoming(upcoming)
+                .inactive(inactive)
+                .total(productionRepository.count())
                 .build();
     }
 
