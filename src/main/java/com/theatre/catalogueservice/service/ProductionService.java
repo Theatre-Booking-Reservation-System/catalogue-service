@@ -92,6 +92,8 @@ public class ProductionService {
         production.setDescriptionTa(request.getDescriptionTa());
         production.setBaseTicketCost(request.getBaseTicketCost());
         production.setReleaseDate(request.getReleaseDate());
+        production.setEndDate(request.getEndDate());
+        production.setPosterImageUrl(request.getPosterImageUrl());
     }
 
     private ProductionResponse toProductionResponse(Production p) {
@@ -107,6 +109,8 @@ public class ProductionService {
                 .descriptionTa(p.getDescriptionTa())
                 .baseTicketCost(p.getBaseTicketCost())
                 .releaseDate(p.getReleaseDate())
+                .endDate(p.getEndDate())
+                .posterImageUrl(p.getPosterImageUrl())
                 .status(p.getStatus())
                 .build();
     }
@@ -124,6 +128,8 @@ public class ProductionService {
                 .descriptionTa(p.getDescriptionTa())
                 .baseTicketCost(p.getBaseTicketCost())
                 .releaseDate(p.getReleaseDate())
+                .endDate(p.getEndDate())
+                .posterImageUrl(p.getPosterImageUrl())
                 .status(p.getStatus())
                 .build();
     }

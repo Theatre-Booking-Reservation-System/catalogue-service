@@ -24,5 +24,7 @@ public class ProductionResponse extends CommonResponse {
     private String descriptionTa;
     private BigDecimal baseTicketCost;
     private LocalDate releaseDate;
+    private LocalDate endDate;
+    private String posterImageUrl;
     private Integer status;
 }

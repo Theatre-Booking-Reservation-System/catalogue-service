@@ -61,6 +61,14 @@ public class Production {
     @Column(name = "release_date", nullable = false)
     private LocalDate releaseDate;
 
+    // End of the run. Nullable: open-ended runs may not have a set end date.
+    @Column(name = "end_date")
+    private LocalDate endDate;
+
+    // URL/path to the production's poster image (stored externally, not as bytes).
+    @Column(name = "poster_image_url")
+    private String posterImageUrl;
+
     @Column(name = "status", nullable = false)
     private Integer status;
 

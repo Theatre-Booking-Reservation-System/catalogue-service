@@ -18,5 +18,7 @@ public class ProductionRequest {
     private String descriptionTa;
     private BigDecimal baseTicketCost;
     private LocalDate releaseDate;
+    private LocalDate endDate;
+    private String posterImageUrl;
     private Integer status;
 }
