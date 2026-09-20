@@ -1,3 +1,9 @@
+-- ============================================================
+-- Seed data for catalogue-service (PostgreSQL).
+-- Idempotent: fixed UUIDs + ON CONFLICT DO NOTHING, so this file
+-- is safe to run on every startup against a persistent database.
+-- ============================================================
+
 INSERT INTO production (
     production_id, title_en, title_si, title_ta,
     language, genre,
@@ -12,7 +18,7 @@ INSERT INTO production (
     'தனது தந்தையின் கொலைக்கு பழிவாங்க முயலும் ஒரு இளம் இளவரசனின் கதை.',
     2500.00, '2026-10-15', 1,
     'admin', CURRENT_TIMESTAMP
-);
+) ON CONFLICT (production_id) DO NOTHING;
 
 INSERT INTO production (
     production_id, title_en, title_si, title_ta,
@@ -28,7 +34,7 @@ INSERT INTO production (
     'எதிரி குடும்பங்களில் இருந்து வரும் இரண்டு இளம் காதலர்களின் சோகமான முடிவு.',
     3000.00, '2026-11-01', 1,
     'admin', CURRENT_TIMESTAMP
-);
+) ON CONFLICT (production_id) DO NOTHING;
 
 INSERT INTO production (
     production_id, title_en, title_si, title_ta,
@@ -44,38 +50,40 @@ INSERT INTO production (
     'மந்திர காட்டில் அமைந்த காதல், மாயம் மற்றும் குழப்பமான அடையாளங்களின் கதை.',
     2000.00, '2026-09-20', 9,
     'admin', CURRENT_TIMESTAMP
-);
+) ON CONFLICT (production_id) DO NOTHING;
 
 -- Performances for 'Hamlet' (production 1)
+-- NOTE: the first performance uses a fixed UUID that seat-service references
+-- as the demo performance for its seeded performance_seat rows.
 INSERT INTO performance (
     performance_id, production_id, date, time, session_type,
     release_date, early_access_opens_at, is_early_access_active,
     status, added_by, added_date
 ) VALUES (
-    RANDOM_UUID(), '11111111-1111-1111-1111-111111111111', '2026-10-15', '19:30:00', 'EVENING',
+    'c0000000-0000-0000-0000-0000000000f1', '11111111-1111-1111-1111-111111111111', '2026-10-15', '19:30:00', 'EVENING',
     '2026-10-15', '2026-10-08', TRUE,
     1, 'admin', CURRENT_TIMESTAMP
-);
+) ON CONFLICT (performance_id) DO NOTHING;
 
 INSERT INTO performance (
     performance_id, production_id, date, time, session_type,
     release_date, early_access_opens_at, is_early_access_active,
     status, added_by, added_date
 ) VALUES (
-    RANDOM_UUID(), '11111111-1111-1111-1111-111111111111', '2026-10-18', '14:00:00', 'MATINEE',
+    'c0000000-0000-0000-0000-0000000000f2', '11111111-1111-1111-1111-111111111111', '2026-10-18', '14:00:00', 'MATINEE',
     '2026-10-18', '2026-10-11', FALSE,
     1, 'admin', CURRENT_TIMESTAMP
-);
+) ON CONFLICT (performance_id) DO NOTHING;
 
 INSERT INTO performance (
     performance_id, production_id, date, time, session_type,
     release_date, early_access_opens_at, is_early_access_active,
     status, added_by, added_date
 ) VALUES (
-    RANDOM_UUID(), '11111111-1111-1111-1111-111111111111', '2026-10-20', '19:30:00', 'EVENING',
+    'c0000000-0000-0000-0000-0000000000f3', '11111111-1111-1111-1111-111111111111', '2026-10-20', '19:30:00', 'EVENING',
     '2026-10-20', '2026-10-13', FALSE,
     9, 'admin', CURRENT_TIMESTAMP
-);
+) ON CONFLICT (performance_id) DO NOTHING;
 
 -- Performances for 'Romeo and Juliet' (production 2)
 INSERT INTO performance (
@@ -83,17 +91,17 @@ INSERT INTO performance (
     release_date, early_access_opens_at, is_early_access_active,
     status, added_by, added_date
 ) VALUES (
-    RANDOM_UUID(), '22222222-2222-2222-2222-222222222222', '2026-11-01', '19:00:00', 'EVENING',
+    'c0000000-0000-0000-0000-0000000000f4', '22222222-2222-2222-2222-222222222222', '2026-11-01', '19:00:00', 'EVENING',
     '2026-11-01', '2026-10-25', TRUE,
     1, 'admin', CURRENT_TIMESTAMP
-);
+) ON CONFLICT (performance_id) DO NOTHING;
 
 INSERT INTO performance (
     performance_id, production_id, date, time, session_type,
     release_date, early_access_opens_at, is_early_access_active,
     status, added_by, added_date
 ) VALUES (
-    RANDOM_UUID(), '22222222-2222-2222-2222-222222222222', '2026-11-02', '15:00:00', 'MATINEE',
+    'c0000000-0000-0000-0000-0000000000f5', '22222222-2222-2222-2222-222222222222', '2026-11-02', '15:00:00', 'MATINEE',
     '2026-11-02', '2026-10-26', FALSE,
     1, 'admin', CURRENT_TIMESTAMP
-);
+) ON CONFLICT (performance_id) DO NOTHING;
