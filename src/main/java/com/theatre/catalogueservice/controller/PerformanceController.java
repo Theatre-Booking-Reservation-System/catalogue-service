@@ -17,6 +17,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -84,8 +85,10 @@ public class PerformanceController {
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Performance created"),
             @ApiResponse(responseCode = "400", description = "Invalid request body"),
-            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+            @ApiResponse(responseCode = "403", description = "Caller is not an ADMIN")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<PerformanceResponse> createPerformance(@RequestBody PerformanceRequest request,
                                                                  @Parameter(hidden = true) @AuthenticationPrincipal AuthenticatedUser user) {
@@ -99,8 +102,10 @@ public class PerformanceController {
             @ApiResponse(responseCode = "200", description = "Performance updated"),
             @ApiResponse(responseCode = "400", description = "Invalid request body"),
             @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+            @ApiResponse(responseCode = "403", description = "Caller is not an ADMIN"),
             @ApiResponse(responseCode = "404", description = "No performance exists for the given id")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<PerformanceResponse> updatePerformance(
             @Parameter(description = "Unique identifier of the performance") @PathVariable UUID id,
@@ -114,8 +119,10 @@ public class PerformanceController {
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Performance deleted"),
             @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+            @ApiResponse(responseCode = "403", description = "Caller is not an ADMIN"),
             @ApiResponse(responseCode = "404", description = "No performance exists for the given id")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePerformance(
             @Parameter(description = "Unique identifier of the performance") @PathVariable UUID id,

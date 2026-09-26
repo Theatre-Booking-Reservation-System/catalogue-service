@@ -21,6 +21,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.theatre.catalogueservice.config.AuthenticatedUser;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -89,8 +90,10 @@ public class ProductionController {
                     + "active (running), upcoming (releasing later), inactive (archived) and total.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Summary counts returned"),
-            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+            @ApiResponse(responseCode = "403", description = "Caller is not an ADMIN")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/summary")
     public ResponseEntity<ProductionSummaryResponse> productionSummary() {
         return ResponseEntity.ok(productionService.summary());
@@ -114,8 +117,10 @@ public class ProductionController {
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Production created"),
             @ApiResponse(responseCode = "400", description = "Invalid request body"),
-            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+            @ApiResponse(responseCode = "403", description = "Caller is not an ADMIN")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ProductionResponse> createProduction(@RequestBody ProductionRequest request,
                                                                @Parameter(hidden = true) @AuthenticationPrincipal AuthenticatedUser user) {
@@ -129,8 +134,10 @@ public class ProductionController {
             @ApiResponse(responseCode = "200", description = "Production updated"),
             @ApiResponse(responseCode = "400", description = "Invalid request body"),
             @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+            @ApiResponse(responseCode = "403", description = "Caller is not an ADMIN"),
             @ApiResponse(responseCode = "404", description = "No production exists for the given id")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ProductionResponse> updateProduction(
             @Parameter(description = "Unique identifier of the production") @PathVariable UUID id,
@@ -144,8 +151,10 @@ public class ProductionController {
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Production deleted"),
             @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+            @ApiResponse(responseCode = "403", description = "Caller is not an ADMIN"),
             @ApiResponse(responseCode = "404", description = "No production exists for the given id")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduction(
             @Parameter(description = "Unique identifier of the production") @PathVariable UUID id,

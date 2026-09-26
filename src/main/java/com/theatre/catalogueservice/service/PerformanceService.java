@@ -125,9 +125,6 @@ public class PerformanceService {
         performance.setDate(request.getDate());
         performance.setTime(request.getTime());
         performance.setSessionType(request.getSessionType());
-        performance.setReleaseDate(request.getReleaseDate());
-        performance.setEarlyAccessOpensAt(request.getEarlyAccessOpensAt());
-        performance.setIsEarlyAccessActive(request.getIsEarlyAccessActive());
     }
 
     private PerformanceResponse toPerformanceResponse(Performance p) {
@@ -137,9 +134,6 @@ public class PerformanceService {
                 .date(p.getDate())
                 .time(p.getTime())
                 .sessionType(p.getSessionType())
-                .releaseDate(p.getReleaseDate())
-                .earlyAccessOpensAt(p.getEarlyAccessOpensAt())
-                .isEarlyAccessActive(p.getIsEarlyAccessActive())
                 .status(p.getStatus())
                 .build();
     }
@@ -151,9 +145,6 @@ public class PerformanceService {
                 .date(p.getDate())
                 .time(p.getTime())
                 .sessionType(p.getSessionType())
-                .releaseDate(p.getReleaseDate())
-                .earlyAccessOpensAt(p.getEarlyAccessOpensAt())
-                .isEarlyAccessActive(p.getIsEarlyAccessActive())
                 .status(p.getStatus())
                 .build();
     }

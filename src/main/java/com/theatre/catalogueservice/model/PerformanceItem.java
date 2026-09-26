@@ -16,8 +16,5 @@ public class PerformanceItem {
     private LocalDate date;
     private LocalTime time;
     private SessionType sessionType;
-    private LocalDate releaseDate;
-    private LocalDate earlyAccessOpensAt;
-    private Boolean isEarlyAccessActive;
     private Integer status;
 }

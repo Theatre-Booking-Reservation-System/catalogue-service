@@ -16,7 +16,6 @@ import lombok.Setter;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Entity
@@ -43,15 +42,6 @@ public class Performance {
     @Enumerated(EnumType.STRING)
     @Column(name = "session_type", nullable = false, length = 10)
     private SessionType sessionType;
-
-    @Column(name = "release_date", nullable = false)
-    private LocalDate releaseDate;
-
-    @Column(name = "early_access_opens_at", nullable = false)
-    private LocalDate earlyAccessOpensAt;
-
-    @Column(name = "is_early_access_active", nullable = false)
-    private Boolean isEarlyAccessActive;
 
     @Column(name = "status", nullable = false)
     private Integer status;

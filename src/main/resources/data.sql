@@ -54,51 +54,41 @@ INSERT INTO production (
 -- as the demo performance for its seeded performance_seat rows.
 INSERT INTO performance (
     performance_id, production_id, date, time, session_type,
-    release_date, early_access_opens_at, is_early_access_active,
     status, added_by, added_date
 ) VALUES (
     'c0000000-0000-0000-0000-0000000000f1', '11111111-1111-1111-1111-111111111111', '2026-10-15', '19:30:00', 'EVENING',
-    '2026-10-15', '2026-10-08', TRUE,
     1, 'admin', CURRENT_TIMESTAMP
 ) ON CONFLICT (performance_id) DO NOTHING;
 
 INSERT INTO performance (
     performance_id, production_id, date, time, session_type,
-    release_date, early_access_opens_at, is_early_access_active,
     status, added_by, added_date
 ) VALUES (
     'c0000000-0000-0000-0000-0000000000f2', '11111111-1111-1111-1111-111111111111', '2026-10-18', '14:00:00', 'MATINEE',
-    '2026-10-18', '2026-10-11', FALSE,
     1, 'admin', CURRENT_TIMESTAMP
 ) ON CONFLICT (performance_id) DO NOTHING;
 
 INSERT INTO performance (
     performance_id, production_id, date, time, session_type,
-    release_date, early_access_opens_at, is_early_access_active,
     status, added_by, added_date
 ) VALUES (
     'c0000000-0000-0000-0000-0000000000f3', '11111111-1111-1111-1111-111111111111', '2026-10-20', '19:30:00', 'EVENING',
-    '2026-10-20', '2026-10-13', FALSE,
     9, 'admin', CURRENT_TIMESTAMP
 ) ON CONFLICT (performance_id) DO NOTHING;
 
 -- Performances for 'Romeo and Juliet' (production 2)
 INSERT INTO performance (
     performance_id, production_id, date, time, session_type,
-    release_date, early_access_opens_at, is_early_access_active,
     status, added_by, added_date
 ) VALUES (
     'c0000000-0000-0000-0000-0000000000f4', '22222222-2222-2222-2222-222222222222', '2026-11-01', '19:00:00', 'EVENING',
-    '2026-11-01', '2026-10-25', TRUE,
     1, 'admin', CURRENT_TIMESTAMP
 ) ON CONFLICT (performance_id) DO NOTHING;
 
 INSERT INTO performance (
     performance_id, production_id, date, time, session_type,
-    release_date, early_access_opens_at, is_early_access_active,
     status, added_by, added_date
 ) VALUES (
     'c0000000-0000-0000-0000-0000000000f5', '22222222-2222-2222-2222-222222222222', '2026-11-02', '15:00:00', 'MATINEE',
-    '2026-11-02', '2026-10-26', FALSE,
     1, 'admin', CURRENT_TIMESTAMP
 ) ON CONFLICT (performance_id) DO NOTHING;
