@@ -50,9 +50,9 @@ public class Production {
     @Column(name = "duration")
     private String duration;
 
-    // Minimum age required to attend (null = no restriction).
+    // Age restriction label, e.g. "All Ages", "12+", "18+" (null = no restriction).
     @Column(name = "age_restriction")
-    private Integer ageRestriction;
+    private String ageRestriction;
 
     // Cast and crew details (names, roles). Stored as free-text.
     @Column(name = "cast_crew", columnDefinition = "TEXT")
@@ -65,8 +65,9 @@ public class Production {
     @Column(name = "end_date")
     private LocalDate endDate;
 
-    // URL/path to the production's poster image (stored externally, not as bytes).
-    @Column(name = "poster_image_url")
+    // Poster image stored inline as a base64-encoded string (may be a data URI).
+    // TEXT because base64 payloads far exceed the default varchar length.
+    @Column(name = "poster_image_url", columnDefinition = "TEXT")
     private String posterImageUrl;
 
     @Column(name = "status", nullable = false)

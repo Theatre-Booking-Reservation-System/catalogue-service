@@ -14,7 +14,7 @@ public class ProductionRequest {
     private String description;
     private BigDecimal baseTicketCost;
     private String duration;
-    private Integer ageRestriction;
+    private String ageRestriction;
     private String castCrew;
     private LocalDate releaseDate;
     private LocalDate endDate;
