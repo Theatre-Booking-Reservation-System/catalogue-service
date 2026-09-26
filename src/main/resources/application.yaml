@@ -2,32 +2,43 @@ spring:
   application:
     name: catalogue-service
 
+  # PostgreSQL. Env-var driven with local-dev defaults.
   datasource:
-    url: jdbc:h2:mem:catalogue_db;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE;NON_KEYWORDS=VALUE
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
-
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/catalogue_db}
+    username: ${DB_USERNAME:theatre}
+    password: ${DB_PASSWORD:theatre}
+    driver-class-name: org.postgresql.Driver
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
-    show-sql: true
+      ddl-auto: ${JPA_DDL_AUTO:update}
+    show-sql: false
+    open-in-view: false
     properties:
       hibernate:
         format_sql: true
+    # Run data.sql AFTER Hibernate creates/updates the schema.
     defer-datasource-initialization: true
 
   sql:
     init:
-      mode: always
+      # data.sql uses ON CONFLICT DO NOTHING, so re-running on each start is safe.
+      mode: ${SQL_INIT_MODE:always}
 
 server:
-  port: 8082
+  port: ${SERVER_PORT:8082}
+  # Served under a context path so a single ALB can route by path prefix.
+  # Overridable via CONTEXT_PATH; empty ("") serves from root for local dev.
+  servlet:
+    context-path: ${CONTEXT_PATH:/catalogue-service}
 
 jwt:
   secret: DbPgxPEztADVNGoeXqh2WnPT1iPrTVcGJHc6qJOqG95
+
+# OpenAPI / Swagger UI
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: method
