@@ -5,50 +5,47 @@
 -- ============================================================
 
 INSERT INTO production (
-    production_id, title_en, title_si, title_ta,
-    language, genre,
-    description_en, description_si, description_ta,
-    base_ticket_cost, release_date, end_date, poster_image_url, status,
+    production_id, title,
+    language, genre, description,
+    base_ticket_cost, duration, age_restriction, cast_crew,
+    release_date, end_date, poster_image_url, status,
     added_by, added_date
 ) VALUES (
-    '11111111-1111-1111-1111-111111111111', 'Hamlet', 'හැම්ලෙට්', 'ஹாம்லெட்',
+    '11111111-1111-1111-1111-111111111111', 'Hamlet',
     'ENGLISH', 'Tragedy',
     'A young prince seeks revenge for his father''s murder in this timeless Shakespearean masterpiece.',
-    'තම පියාගේ මිනීමැරුමට පළිගැනීමක් සොයන තරුණ කුමාරවරයෙකුගේ කතාව.',
-    'தனது தந்தையின் கொலைக்கு பழிவாங்க முயலும் ஒரு இளம் இளவரசனின் கதை.',
-    2500.00, '2026-10-15', '2026-10-31', 'https://cdn.sapumaltheatre.lk/posters/hamlet.jpg', 1,
+    2500.00, '2h 45m', 12, 'Dir. Ranjan Perera; Cast: Sanath Gunathilake, Malani Fonseka',
+    '2026-10-15', '2026-10-31', 'https://cdn.sapumaltheatre.lk/posters/hamlet.jpg', 1,
     'admin', CURRENT_TIMESTAMP
 ) ON CONFLICT (production_id) DO NOTHING;
 
 INSERT INTO production (
-    production_id, title_en, title_si, title_ta,
-    language, genre,
-    description_en, description_si, description_ta,
-    base_ticket_cost, release_date, end_date, poster_image_url, status,
+    production_id, title,
+    language, genre, description,
+    base_ticket_cost, duration, age_restriction, cast_crew,
+    release_date, end_date, poster_image_url, status,
     added_by, added_date
 ) VALUES (
-    '22222222-2222-2222-2222-222222222222', 'Romeo and Juliet', 'රොමියෝ සහ ජූලියට්', 'ரோமியோ மற்றும் ஜூலியட்',
+    '22222222-2222-2222-2222-222222222222', 'Romeo and Juliet',
     'ENGLISH', 'Romance',
     'Two young star-crossed lovers from rival families meet a tragic end in Verona.',
-    'ශත්‍රු පවුල් දෙකකින් පැමිණෙන තරුණ ප්‍රේමවන්තයන් දෙදෙනෙකුගේ ඛේදජනක ඉරණම.',
-    'எதிரி குடும்பங்களில் இருந்து வரும் இரண்டு இளம் காதலர்களின் சோகமான முடிவு.',
-    3000.00, '2026-11-01', '2026-11-20', 'https://cdn.sapumaltheatre.lk/posters/romeo-and-juliet.jpg', 1,
+    3000.00, '2h 15m', 12, 'Dir. Nadeeka Silva; Cast: Pubudu Chathuranga, Semini Iddamalgoda',
+    '2026-11-01', '2026-11-20', 'https://cdn.sapumaltheatre.lk/posters/romeo-and-juliet.jpg', 1,
     'admin', CURRENT_TIMESTAMP
 ) ON CONFLICT (production_id) DO NOTHING;
 
 INSERT INTO production (
-    production_id, title_en, title_si, title_ta,
-    language, genre,
-    description_en, description_si, description_ta,
-    base_ticket_cost, release_date, end_date, poster_image_url, status,
+    production_id, title,
+    language, genre, description,
+    base_ticket_cost, duration, age_restriction, cast_crew,
+    release_date, end_date, poster_image_url, status,
     added_by, added_date
 ) VALUES (
-    '33333333-3333-3333-3333-333333333333', 'A Midsummer Night''s Dream', 'මිහිකත රාත්‍රී සිහිනය', 'மிட்சம்மர் இரவு கனவு',
+    '33333333-3333-3333-3333-333333333333', 'A Midsummer Night''s Dream',
     'ENGLISH', 'Comedy',
     'A delightful comedy of love, magic, and mistaken identities set in an enchanted forest.',
-    'මායාකාරී වනාන්තරයක් තුළ ප්‍රේමය, සිහිනය සහ අනන්‍යතා ව්‍යාකූලතා පිළිබඳ විනෝදජනක කතාවක්.',
-    'மந்திர காட்டில் அமைந்த காதல், மாயம் மற்றும் குழப்பமான அடையாளங்களின் கதை.',
-    2000.00, '2026-09-20', '2026-10-05', 'https://cdn.sapumaltheatre.lk/posters/midsummer-nights-dream.jpg', 9,
+    2000.00, '2h 00m', 0, 'Dir. Kaushalya Fernando; Cast: Jackson Anthony, Damayanthi Fonseka',
+    '2026-09-20', '2026-10-05', 'https://cdn.sapumaltheatre.lk/posters/midsummer-nights-dream.jpg', 9,
     'admin', CURRENT_TIMESTAMP
 ) ON CONFLICT (production_id) DO NOTHING;
 

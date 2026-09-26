@@ -11,6 +11,7 @@ import com.theatre.catalogueservice.repository.ProductionRepository;
 import com.theatre.catalogueservice.repository.model.Production;
 import com.theatre.catalogueservice.repository.spec.ProductionSpecifications;
 import com.theatre.catalogueservice.util.ErrorCode;
+import com.theatre.catalogueservice.util.Language;
 import com.theatre.catalogueservice.util.ProductionStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -42,11 +43,20 @@ public class ProductionService {
                 .build();
     }
 
-    public ProductionSearchResponse search(String q, Integer status, Boolean upcoming, Pageable pageable) {
+    public ProductionSearchResponse search(String title,
+                                           Integer status,
+                                           String genre,
+                                           Language language,
+                                           LocalDate releaseDate,
+                                           LocalDate endDate,
+                                           Pageable pageable) {
         Specification<Production> spec = Specification.allOf(
-                ProductionSpecifications.textContains(q),
+                ProductionSpecifications.titleContains(title),
                 ProductionSpecifications.hasStatus(status),
-                ProductionSpecifications.upcoming(upcoming, LocalDate.now())
+                ProductionSpecifications.hasGenre(genre),
+                ProductionSpecifications.hasLanguage(language),
+                ProductionSpecifications.releaseDateFrom(releaseDate),
+                ProductionSpecifications.endDateTo(endDate)
         );
 
         Page<ProductionItem> result = productionRepository.findAll(spec, pageable)
@@ -125,15 +135,14 @@ public class ProductionService {
     }
 
     private void applyRequest(Production production, ProductionRequest request) {
-        production.setTitleEn(request.getTitleEn());
-        production.setTitleSi(request.getTitleSi());
-        production.setTitleTa(request.getTitleTa());
+        production.setTitle(request.getTitle());
         production.setLanguage(request.getLanguage());
         production.setGenre(request.getGenre());
-        production.setDescriptionEn(request.getDescriptionEn());
-        production.setDescriptionSi(request.getDescriptionSi());
-        production.setDescriptionTa(request.getDescriptionTa());
+        production.setDescription(request.getDescription());
         production.setBaseTicketCost(request.getBaseTicketCost());
+        production.setDuration(request.getDuration());
+        production.setAgeRestriction(request.getAgeRestriction());
+        production.setCastCrew(request.getCastCrew());
         production.setReleaseDate(request.getReleaseDate());
         production.setEndDate(request.getEndDate());
         production.setPosterImageUrl(request.getPosterImageUrl());
@@ -142,15 +151,14 @@ public class ProductionService {
     private ProductionResponse toProductionResponse(Production p) {
         return ProductionResponse.builder()
                 .productionId(p.getProductionId())
-                .titleEn(p.getTitleEn())
-                .titleSi(p.getTitleSi())
-                .titleTa(p.getTitleTa())
+                .title(p.getTitle())
                 .language(p.getLanguage())
                 .genre(p.getGenre())
-                .descriptionEn(p.getDescriptionEn())
-                .descriptionSi(p.getDescriptionSi())
-                .descriptionTa(p.getDescriptionTa())
+                .description(p.getDescription())
                 .baseTicketCost(p.getBaseTicketCost())
+                .duration(p.getDuration())
+                .ageRestriction(p.getAgeRestriction())
+                .castCrew(p.getCastCrew())
                 .releaseDate(p.getReleaseDate())
                 .endDate(p.getEndDate())
                 .posterImageUrl(p.getPosterImageUrl())
@@ -161,15 +169,14 @@ public class ProductionService {
     private ProductionItem toProductionModel(Production p) {
         return ProductionItem.builder()
                 .productionId(p.getProductionId())
-                .titleEn(p.getTitleEn())
-                .titleSi(p.getTitleSi())
-                .titleTa(p.getTitleTa())
+                .title(p.getTitle())
                 .language(p.getLanguage())
                 .genre(p.getGenre())
-                .descriptionEn(p.getDescriptionEn())
-                .descriptionSi(p.getDescriptionSi())
-                .descriptionTa(p.getDescriptionTa())
+                .description(p.getDescription())
                 .baseTicketCost(p.getBaseTicketCost())
+                .duration(p.getDuration())
+                .ageRestriction(p.getAgeRestriction())
+                .castCrew(p.getCastCrew())
                 .releaseDate(p.getReleaseDate())
                 .endDate(p.getEndDate())
                 .posterImageUrl(p.getPosterImageUrl())

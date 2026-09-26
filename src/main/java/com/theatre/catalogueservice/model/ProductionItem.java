@@ -12,15 +12,14 @@ import java.util.UUID;
 @Builder
 public class ProductionItem {
     private UUID productionId;
-    private String titleEn;
-    private String titleSi;
-    private String titleTa;
+    private String title;
     private Language language;
     private String genre;
-    private String descriptionEn;
-    private String descriptionSi;
-    private String descriptionTa;
+    private String description;
     private BigDecimal baseTicketCost;
+    private String duration;
+    private Integer ageRestriction;
+    private String castCrew;
     private LocalDate releaseDate;
     private LocalDate endDate;
     private String posterImageUrl;
