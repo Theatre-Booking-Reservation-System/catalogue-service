@@ -26,7 +26,11 @@ spring:
       mode: ${SQL_INIT_MODE:always}
 
 server:
-  port: 8082
+  port: ${SERVER_PORT:8082}
+  # Served under a context path so a single ALB can route by path prefix.
+  # Overridable via CONTEXT_PATH; empty ("") serves from root for local dev.
+  servlet:
+    context-path: ${CONTEXT_PATH:/catalogue-service}
 
 jwt:
   secret: DbPgxPEztADVNGoeXqh2WnPT1iPrTVcGJHc6qJOqG95
