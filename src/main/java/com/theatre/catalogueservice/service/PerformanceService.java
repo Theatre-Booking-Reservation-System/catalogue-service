@@ -11,6 +11,7 @@ import com.theatre.catalogueservice.repository.PerformanceRepository;
 import com.theatre.catalogueservice.repository.ProductionRepository;
 import com.theatre.catalogueservice.repository.model.Performance;
 import com.theatre.catalogueservice.repository.spec.PerformanceSpecifications;
+import com.theatre.catalogueservice.util.Availability;
 import com.theatre.catalogueservice.util.ErrorCode;
 import com.theatre.catalogueservice.util.ProductionStatus;
 import com.theatre.catalogueservice.util.SessionType;
@@ -31,22 +32,47 @@ import java.util.UUID;
 @Transactional(readOnly = true)
 public class PerformanceService {
 
+    // 75% booked is the threshold between AVAILABLE and LIMITED_SEATS.
+    private static final double LIMITED_THRESHOLD = 0.75d;
+
     private final PerformanceRepository performanceRepository;
     private final ProductionRepository productionRepository;
+    private final SeatClient seatClient;
+    private final BookingClient bookingClient;
 
-    public PerformanceListResponse getPerformancesByProductionId(UUID productionId) {
+    public PerformanceListResponse getPerformancesByProductionId(UUID productionId, String bearerToken) {
         if (!productionRepository.existsById(productionId)) {
             throw new ServiceException(ErrorCode.PRODUCTION_NOT_FOUND);
         }
 
+        // Total seats is the same for every performance, so fetch it once.
+        long totalSeats = seatClient.getTotalSeats(bearerToken);
+
         List<PerformanceItem> performances = performanceRepository.findByProductionId(productionId)
                 .stream()
-                .map(this::toPerformanceModel)
+                .map(p -> {
+                    PerformanceItem item = toPerformanceModel(p);
+                    item.setAvailability(computeAvailability(p.getPerformanceId(), totalSeats, bearerToken));
+                    return item;
+                })
                 .toList();
 
         return PerformanceListResponse.builder()
                 .performances(performances)
                 .build();
+    }
+
+    private Availability computeAvailability(UUID performanceId, long totalSeats, String bearerToken) {
+        // If the seat total is unknown (seat-service unreachable), don't guess.
+        if (totalSeats <= 0) {
+            return Availability.AVAILABLE;
+        }
+        int booked = bookingClient.getBookedSeatCount(performanceId, bearerToken);
+        if (booked >= totalSeats) {
+            return Availability.FULLY_BOOKED;
+        }
+        double ratio = (double) booked / (double) totalSeats;
+        return ratio >= LIMITED_THRESHOLD ? Availability.LIMITED_SEATS : Availability.AVAILABLE;
     }
 
     public PerformanceSearchResponse search(UUID productionId, LocalDate dateFrom, LocalDate dateTo,

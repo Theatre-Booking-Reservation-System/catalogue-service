@@ -35,6 +35,13 @@ server:
 jwt:
   secret: DbPgxPEztADVNGoeXqh2WnPT1iPrTVcGJHc6qJOqG95
 
+# Downstream service clients (used to compute per-performance availability)
+clients:
+  seat:
+    base-url: ${SEAT_BASE_URL:http://localhost:8083/seat-service}
+  booking:
+    base-url: ${BOOKING_BASE_URL:http://localhost:8084/booking-service}
+
 # OpenAPI / Swagger UI
 springdoc:
   api-docs:
