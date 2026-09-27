@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 
 @Data
 public class ProductionRequest {
@@ -15,9 +16,8 @@ public class ProductionRequest {
     private BigDecimal baseTicketCost;
     private String duration;
     private String ageRestriction;
-    private String castCrew;
+    private List<CastCrewMember> castCrew;
     private LocalDate releaseDate;
     private LocalDate endDate;
     private String posterImageUrl;
-    private Integer status;
 }

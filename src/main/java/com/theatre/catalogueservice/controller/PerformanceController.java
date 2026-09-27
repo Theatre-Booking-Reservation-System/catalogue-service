@@ -1,6 +1,7 @@
 package com.theatre.catalogueservice.controller;
 
 import com.theatre.catalogueservice.config.AuthenticatedUser;
+import com.theatre.catalogueservice.model.PerformanceCreateResponse;
 import com.theatre.catalogueservice.model.PerformanceRequest;
 import com.theatre.catalogueservice.model.PerformanceResponse;
 import com.theatre.catalogueservice.model.PerformanceSearchResponse;
@@ -90,7 +91,7 @@ public class PerformanceController {
     })
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<PerformanceResponse> createPerformance(@RequestBody PerformanceRequest request,
+    public ResponseEntity<PerformanceCreateResponse> createPerformance(@RequestBody PerformanceRequest request,
                                                                  @Parameter(hidden = true) @AuthenticationPrincipal AuthenticatedUser user) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(performanceService.createPerformance(request, user.displayName()));

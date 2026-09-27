@@ -13,5 +13,4 @@ public class PerformanceRequest {
     private LocalDate date;
     private LocalTime time;
     private SessionType sessionType;
-    private Integer status;
 }

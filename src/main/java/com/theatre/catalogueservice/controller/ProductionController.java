@@ -1,6 +1,7 @@
 package com.theatre.catalogueservice.controller;
 
 import com.theatre.catalogueservice.model.PerformanceListResponse;
+import com.theatre.catalogueservice.model.ProductionCreateResponse;
 import com.theatre.catalogueservice.model.ProductionListResponse;
 import com.theatre.catalogueservice.model.ProductionRequest;
 import com.theatre.catalogueservice.model.ProductionResponse;
@@ -122,7 +123,7 @@ public class ProductionController {
     })
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<ProductionResponse> createProduction(@RequestBody ProductionRequest request,
+    public ResponseEntity<ProductionCreateResponse> createProduction(@RequestBody ProductionRequest request,
                                                                @Parameter(hidden = true) @AuthenticationPrincipal AuthenticatedUser user) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(productionService.createProduction(request, user.displayName()));

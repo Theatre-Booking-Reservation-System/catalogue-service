@@ -65,6 +65,15 @@
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-webmvc</artifactId>
 		</dependency>
+		<!-- Jackson 2 datatype module for java.time (LocalDate/LocalDateTime).
+		     Registered on the explicit Jackson 2 ObjectMapper bean in JacksonConfig.
+		     Spring Boot 4.1 auto-configures a Jackson 3 mapper, but ProductionService
+		     uses the Jackson 2 API (com.fasterxml.jackson) that jjwt-jackson provides,
+		     so we expose that ObjectMapper ourselves. -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.datatype</groupId>
+			<artifactId>jackson-datatype-jsr310</artifactId>
+		</dependency>
 
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>

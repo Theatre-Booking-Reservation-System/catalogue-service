@@ -1,6 +1,11 @@
 package com.theatre.catalogueservice.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.theatre.catalogueservice.exception.ServiceException;
+import com.theatre.catalogueservice.model.CastCrewMember;
+import com.theatre.catalogueservice.model.ProductionCreateResponse;
 import com.theatre.catalogueservice.model.ProductionItem;
 import com.theatre.catalogueservice.model.ProductionListResponse;
 import com.theatre.catalogueservice.model.ProductionRequest;
@@ -31,6 +36,7 @@ import java.util.UUID;
 public class ProductionService {
 
     private final ProductionRepository productionRepository;
+    private final ObjectMapper objectMapper;
 
     public ProductionListResponse getAllProductions() {
         List<ProductionItem> productions = productionRepository.findByStatus(ProductionStatus.ACTIVE.getValue())
@@ -95,16 +101,20 @@ public class ProductionService {
     }
 
     @Transactional
-    public ProductionResponse createProduction(ProductionRequest request, String email) {
+    public ProductionCreateResponse createProduction(ProductionRequest request, String email) {
         Production production = new Production();
         applyRequest(production, request);
-        production.setStatus(request.getStatus() != null
-                ? request.getStatus()
-                : ProductionStatus.ACTIVE.getValue());
+        // New productions always start ACTIVE; status is not part of the request.
+        production.setStatus(ProductionStatus.ACTIVE.getValue());
         production.setAddedBy(email);
         production.setAddedDate(LocalDateTime.now());
 
-        return toProductionResponse(productionRepository.save(production));
+        Production saved = productionRepository.save(production);
+        return ProductionCreateResponse.builder()
+                .productionId(saved.getProductionId())
+                .statusCode("SUCCESS")
+                .statusDescription("Production created successfully")
+                .build();
     }
 
     @Transactional
@@ -113,9 +123,6 @@ public class ProductionService {
                 .orElseThrow(() -> new ServiceException(ErrorCode.PRODUCTION_NOT_FOUND));
 
         applyRequest(production, request);
-        if (request.getStatus() != null) {
-            production.setStatus(request.getStatus());
-        }
         production.setModifiedBy(email);
         production.setModifiedDate(LocalDateTime.now());
 
@@ -142,7 +149,7 @@ public class ProductionService {
         production.setBaseTicketCost(request.getBaseTicketCost());
         production.setDuration(request.getDuration());
         production.setAgeRestriction(request.getAgeRestriction());
-        production.setCastCrew(request.getCastCrew());
+        production.setCastCrew(serializeCastCrew(request.getCastCrew()));
         production.setReleaseDate(request.getReleaseDate());
         production.setEndDate(request.getEndDate());
         production.setPosterImageUrl(request.getPosterImageUrl());
@@ -158,7 +165,7 @@ public class ProductionService {
                 .baseTicketCost(p.getBaseTicketCost())
                 .duration(p.getDuration())
                 .ageRestriction(p.getAgeRestriction())
-                .castCrew(p.getCastCrew())
+                .castCrew(deserializeCastCrew(p.getCastCrew()))
                 .releaseDate(p.getReleaseDate())
                 .endDate(p.getEndDate())
                 .posterImageUrl(p.getPosterImageUrl())
@@ -176,11 +183,36 @@ public class ProductionService {
                 .baseTicketCost(p.getBaseTicketCost())
                 .duration(p.getDuration())
                 .ageRestriction(p.getAgeRestriction())
-                .castCrew(p.getCastCrew())
+                .castCrew(deserializeCastCrew(p.getCastCrew()))
                 .releaseDate(p.getReleaseDate())
                 .endDate(p.getEndDate())
                 .posterImageUrl(p.getPosterImageUrl())
                 .status(p.getStatus())
                 .build();
+    }
+
+    // Cast/crew is exposed as a list of key-value pairs but persisted as a single
+    // JSON column. These helpers convert between the two representations.
+    private String serializeCastCrew(List<CastCrewMember> castCrew) {
+        if (castCrew == null || castCrew.isEmpty()) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(castCrew);
+        } catch (JsonProcessingException e) {
+            throw new ServiceException(ErrorCode.DEFAULT);
+        }
+    }
+
+    private List<CastCrewMember> deserializeCastCrew(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<CastCrewMember>>() {
+            });
+        } catch (JsonProcessingException e) {
+            throw new ServiceException(ErrorCode.DEFAULT);
+        }
     }
 }

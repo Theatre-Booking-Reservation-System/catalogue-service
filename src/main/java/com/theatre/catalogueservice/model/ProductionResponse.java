@@ -7,6 +7,7 @@ import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @EqualsAndHashCode(callSuper = true)
@@ -21,7 +22,7 @@ public class ProductionResponse extends CommonResponse {
     private BigDecimal baseTicketCost;
     private String duration;
     private String ageRestriction;
-    private String castCrew;
+    private List<CastCrewMember> castCrew;
     private LocalDate releaseDate;
     private LocalDate endDate;
     private String posterImageUrl;
