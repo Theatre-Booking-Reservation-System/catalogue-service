@@ -1,7 +1,66 @@
 -- ============================================================
--- Seed data for catalogue-service (PostgreSQL).
--- Idempotent: fixed UUIDs + ON CONFLICT DO NOTHING, so this file
--- is safe to run on every startup against a persistent database.
+-- Manual schema reset for catalogue-service (PostgreSQL).
+--
+-- Use this ONLY when you intend to drop and recreate the production and
+-- performance tables after the schema changes: production's single `title`
+-- and `description` columns (replacing the per-language variants) plus the
+-- new duration / age_restriction / cast_crew columns, and performance losing
+-- its release_date / early_access_opens_at / is_early_access_active columns.
+--
+-- This script is NOT run automatically. Run it by hand against
+-- catalogue_db, e.g.:
+--   psql -h localhost -U <user> -d catalogue_db -f reset-production-schema.sql
+--
+-- After running it, start catalogue-service with spring.jpa.hibernate.ddl-auto
+-- = update (the default) so Hibernate recreates the tables from the JPA
+-- entities, then data.sql reseeds them.
+-- ============================================================
+
+-- performance has a FK to production, so drop it first (or use CASCADE).
+DROP TABLE IF EXISTS performance CASCADE;
+DROP TABLE IF EXISTS production CASCADE;
+
+-- Optional: recreate the tables explicitly to match the current entity
+-- mappings. If you rely on Hibernate ddl-auto=update you can skip these
+-- CREATE statements and let the app build the schema on startup.
+CREATE TABLE production (
+    production_id     UUID PRIMARY KEY,
+    title             VARCHAR(255)   NOT NULL,
+    language          VARCHAR(20)    NOT NULL,
+    genre             VARCHAR(255),
+    description       TEXT,
+    base_ticket_cost  NUMERIC(10, 2) NOT NULL,
+    duration          VARCHAR(255),
+    age_restriction   VARCHAR(255),
+    cast_crew         TEXT,
+    release_date      DATE           NOT NULL,
+    end_date          DATE,
+    poster_image_url  TEXT,
+    status            INTEGER        NOT NULL,
+    added_by          VARCHAR(255),
+    added_date        TIMESTAMP,
+    modified_by       VARCHAR(255),
+    modified_date     TIMESTAMP
+);
+
+CREATE TABLE performance (
+    performance_id    UUID PRIMARY KEY,
+    production_id     UUID           NOT NULL,
+    date              DATE           NOT NULL,
+    time              TIME           NOT NULL,
+    session_type      VARCHAR(10)    NOT NULL,
+    status            INTEGER        NOT NULL,
+    added_by          VARCHAR(255),
+    added_date        TIMESTAMP,
+    modified_by       VARCHAR(255),
+    modified_date     TIMESTAMP,
+    CONSTRAINT fk_performance_production
+        FOREIGN KEY (production_id) REFERENCES production (production_id)
+);
+
+-- ============================================================
+-- Mock data (mirrors src/main/resources/data.sql). Idempotent via
+-- fixed UUIDs + ON CONFLICT DO NOTHING.
 -- ============================================================
 
 INSERT INTO production (

@@ -1,6 +1,7 @@
 package com.theatre.catalogueservice.repository.spec;
 
 import com.theatre.catalogueservice.repository.model.Production;
+import com.theatre.catalogueservice.util.Language;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.time.LocalDate;
@@ -15,18 +16,46 @@ public final class ProductionSpecifications {
         return (root, query, cb) -> cb.conjunction();
     }
 
-    // Case-insensitive match of the query text against any title (en/si/ta) or genre
-    public static Specification<Production> textContains(String q) {
-        if (q == null || q.isBlank()) {
+    // Case-insensitive partial match on the title
+    public static Specification<Production> titleContains(String title) {
+        if (title == null || title.isBlank()) {
             return always();
         }
-        String like = "%" + q.trim().toLowerCase() + "%";
-        return (root, query, cb) -> cb.or(
-                cb.like(cb.lower(root.get("titleEn")), like),
-                cb.like(cb.lower(root.get("titleSi")), like),
-                cb.like(cb.lower(root.get("titleTa")), like),
-                cb.like(cb.lower(root.get("genre")), like)
-        );
+        String like = "%" + title.trim().toLowerCase() + "%";
+        return (root, query, cb) -> cb.like(cb.lower(root.get("title")), like);
+    }
+
+    // Case-insensitive partial match on genre
+    public static Specification<Production> hasGenre(String genre) {
+        if (genre == null || genre.isBlank()) {
+            return always();
+        }
+        String like = "%" + genre.trim().toLowerCase() + "%";
+        return (root, query, cb) -> cb.like(cb.lower(root.get("genre")), like);
+    }
+
+    public static Specification<Production> hasLanguage(Language language) {
+        if (language == null) {
+            return always();
+        }
+        return (root, query, cb) -> cb.equal(root.get("language"), language);
+    }
+
+    // Productions releasing on or after the given date (inclusive lower bound)
+    public static Specification<Production> releaseDateFrom(LocalDate releaseDate) {
+        if (releaseDate == null) {
+            return always();
+        }
+        return (root, query, cb) -> cb.greaterThanOrEqualTo(root.get("releaseDate"), releaseDate);
+    }
+
+    // Productions whose run ends on or before the given date (inclusive upper bound).
+    // Open-ended runs (null endDate) are excluded when this filter is applied.
+    public static Specification<Production> endDateTo(LocalDate endDate) {
+        if (endDate == null) {
+            return always();
+        }
+        return (root, query, cb) -> cb.lessThanOrEqualTo(root.get("endDate"), endDate);
     }
 
     public static Specification<Production> hasStatus(Integer status) {
@@ -34,14 +63,5 @@ public final class ProductionSpecifications {
             return always();
         }
         return (root, query, cb) -> cb.equal(root.get("status"), status);
-    }
-
-    public static Specification<Production> upcoming(Boolean upcoming, LocalDate today) {
-        if (upcoming == null) {
-            return always();
-        }
-        return (root, query, cb) -> upcoming
-                ? cb.greaterThan(root.get("releaseDate"), today)
-                : cb.lessThanOrEqualTo(root.get("releaseDate"), today);
     }
 }

@@ -1,6 +1,11 @@
 package com.theatre.catalogueservice.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.theatre.catalogueservice.exception.ServiceException;
+import com.theatre.catalogueservice.model.CastCrewMember;
+import com.theatre.catalogueservice.model.ProductionCreateResponse;
 import com.theatre.catalogueservice.model.ProductionItem;
 import com.theatre.catalogueservice.model.ProductionListResponse;
 import com.theatre.catalogueservice.model.ProductionRequest;
@@ -11,6 +16,7 @@ import com.theatre.catalogueservice.repository.ProductionRepository;
 import com.theatre.catalogueservice.repository.model.Production;
 import com.theatre.catalogueservice.repository.spec.ProductionSpecifications;
 import com.theatre.catalogueservice.util.ErrorCode;
+import com.theatre.catalogueservice.util.Language;
 import com.theatre.catalogueservice.util.ProductionStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,6 +36,7 @@ import java.util.UUID;
 public class ProductionService {
 
     private final ProductionRepository productionRepository;
+    private final ObjectMapper objectMapper;
 
     public ProductionListResponse getAllProductions() {
         List<ProductionItem> productions = productionRepository.findByStatus(ProductionStatus.ACTIVE.getValue())
@@ -42,11 +49,20 @@ public class ProductionService {
                 .build();
     }
 
-    public ProductionSearchResponse search(String q, Integer status, Boolean upcoming, Pageable pageable) {
+    public ProductionSearchResponse search(String title,
+                                           Integer status,
+                                           String genre,
+                                           Language language,
+                                           LocalDate releaseDate,
+                                           LocalDate endDate,
+                                           Pageable pageable) {
         Specification<Production> spec = Specification.allOf(
-                ProductionSpecifications.textContains(q),
+                ProductionSpecifications.titleContains(title),
                 ProductionSpecifications.hasStatus(status),
-                ProductionSpecifications.upcoming(upcoming, LocalDate.now())
+                ProductionSpecifications.hasGenre(genre),
+                ProductionSpecifications.hasLanguage(language),
+                ProductionSpecifications.releaseDateFrom(releaseDate),
+                ProductionSpecifications.endDateTo(endDate)
         );
 
         Page<ProductionItem> result = productionRepository.findAll(spec, pageable)
@@ -85,16 +101,20 @@ public class ProductionService {
     }
 
     @Transactional
-    public ProductionResponse createProduction(ProductionRequest request, String email) {
+    public ProductionCreateResponse createProduction(ProductionRequest request, String email) {
         Production production = new Production();
         applyRequest(production, request);
-        production.setStatus(request.getStatus() != null
-                ? request.getStatus()
-                : ProductionStatus.ACTIVE.getValue());
+        // New productions always start ACTIVE; status is not part of the request.
+        production.setStatus(ProductionStatus.ACTIVE.getValue());
         production.setAddedBy(email);
         production.setAddedDate(LocalDateTime.now());
 
-        return toProductionResponse(productionRepository.save(production));
+        Production saved = productionRepository.save(production);
+        return ProductionCreateResponse.builder()
+                .productionId(saved.getProductionId())
+                .statusCode("SUCCESS")
+                .statusDescription("Production created successfully")
+                .build();
     }
 
     @Transactional
@@ -103,9 +123,6 @@ public class ProductionService {
                 .orElseThrow(() -> new ServiceException(ErrorCode.PRODUCTION_NOT_FOUND));
 
         applyRequest(production, request);
-        if (request.getStatus() != null) {
-            production.setStatus(request.getStatus());
-        }
         production.setModifiedBy(email);
         production.setModifiedDate(LocalDateTime.now());
 
@@ -125,15 +142,14 @@ public class ProductionService {
     }
 
     private void applyRequest(Production production, ProductionRequest request) {
-        production.setTitleEn(request.getTitleEn());
-        production.setTitleSi(request.getTitleSi());
-        production.setTitleTa(request.getTitleTa());
+        production.setTitle(request.getTitle());
         production.setLanguage(request.getLanguage());
         production.setGenre(request.getGenre());
-        production.setDescriptionEn(request.getDescriptionEn());
-        production.setDescriptionSi(request.getDescriptionSi());
-        production.setDescriptionTa(request.getDescriptionTa());
+        production.setDescription(request.getDescription());
         production.setBaseTicketCost(request.getBaseTicketCost());
+        production.setDuration(request.getDuration());
+        production.setAgeRestriction(request.getAgeRestriction());
+        production.setCastCrew(serializeCastCrew(request.getCastCrew()));
         production.setReleaseDate(request.getReleaseDate());
         production.setEndDate(request.getEndDate());
         production.setPosterImageUrl(request.getPosterImageUrl());
@@ -142,15 +158,14 @@ public class ProductionService {
     private ProductionResponse toProductionResponse(Production p) {
         return ProductionResponse.builder()
                 .productionId(p.getProductionId())
-                .titleEn(p.getTitleEn())
-                .titleSi(p.getTitleSi())
-                .titleTa(p.getTitleTa())
+                .title(p.getTitle())
                 .language(p.getLanguage())
                 .genre(p.getGenre())
-                .descriptionEn(p.getDescriptionEn())
-                .descriptionSi(p.getDescriptionSi())
-                .descriptionTa(p.getDescriptionTa())
+                .description(p.getDescription())
                 .baseTicketCost(p.getBaseTicketCost())
+                .duration(p.getDuration())
+                .ageRestriction(p.getAgeRestriction())
+                .castCrew(deserializeCastCrew(p.getCastCrew()))
                 .releaseDate(p.getReleaseDate())
                 .endDate(p.getEndDate())
                 .posterImageUrl(p.getPosterImageUrl())
@@ -161,19 +176,43 @@ public class ProductionService {
     private ProductionItem toProductionModel(Production p) {
         return ProductionItem.builder()
                 .productionId(p.getProductionId())
-                .titleEn(p.getTitleEn())
-                .titleSi(p.getTitleSi())
-                .titleTa(p.getTitleTa())
+                .title(p.getTitle())
                 .language(p.getLanguage())
                 .genre(p.getGenre())
-                .descriptionEn(p.getDescriptionEn())
-                .descriptionSi(p.getDescriptionSi())
-                .descriptionTa(p.getDescriptionTa())
+                .description(p.getDescription())
                 .baseTicketCost(p.getBaseTicketCost())
+                .duration(p.getDuration())
+                .ageRestriction(p.getAgeRestriction())
+                .castCrew(deserializeCastCrew(p.getCastCrew()))
                 .releaseDate(p.getReleaseDate())
                 .endDate(p.getEndDate())
                 .posterImageUrl(p.getPosterImageUrl())
                 .status(p.getStatus())
                 .build();
+    }
+
+    // Cast/crew is exposed as a list of key-value pairs but persisted as a single
+    // JSON column. These helpers convert between the two representations.
+    private String serializeCastCrew(List<CastCrewMember> castCrew) {
+        if (castCrew == null || castCrew.isEmpty()) {
+            return null;
+        }
+        try {
+            return objectMapper.writeValueAsString(castCrew);
+        } catch (JsonProcessingException e) {
+            throw new ServiceException(ErrorCode.DEFAULT);
+        }
+    }
+
+    private List<CastCrewMember> deserializeCastCrew(String json) {
+        if (json == null || json.isBlank()) {
+            return List.of();
+        }
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<CastCrewMember>>() {
+            });
+        } catch (JsonProcessingException e) {
+            throw new ServiceException(ErrorCode.DEFAULT);
+        }
     }
 }

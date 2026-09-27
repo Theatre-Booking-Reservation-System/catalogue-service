@@ -30,14 +30,8 @@ public class Production {
     @Column(name = "production_id", updatable = false, nullable = false)
     private UUID productionId;
 
-    @Column(name = "title_en", nullable = false)
-    private String titleEn;
-
-    @Column(name = "title_si")
-    private String titleSi;
-
-    @Column(name = "title_ta")
-    private String titleTa;
+    @Column(name = "title", nullable = false)
+    private String title;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "language", nullable = false)
@@ -46,17 +40,23 @@ public class Production {
     @Column(name = "genre")
     private String genre;
 
-    @Column(name = "description_en", columnDefinition = "TEXT")
-    private String descriptionEn;
-
-    @Column(name = "description_si", columnDefinition = "TEXT")
-    private String descriptionSi;
-
-    @Column(name = "description_ta", columnDefinition = "TEXT")
-    private String descriptionTa;
+    @Column(name = "description", columnDefinition = "TEXT")
+    private String description;
 
     @Column(name = "base_ticket_cost", nullable = false, precision = 10, scale = 2)
     private BigDecimal baseTicketCost;
+
+    // Running length of the production, e.g. "2h 30m". Free-text to allow flexible formatting.
+    @Column(name = "duration")
+    private String duration;
+
+    // Age restriction label, e.g. "All Ages", "12+", "18+" (null = no restriction).
+    @Column(name = "age_restriction")
+    private String ageRestriction;
+
+    // Cast and crew details (names, roles). Stored as free-text.
+    @Column(name = "cast_crew", columnDefinition = "TEXT")
+    private String castCrew;
 
     @Column(name = "release_date", nullable = false)
     private LocalDate releaseDate;
@@ -65,8 +65,9 @@ public class Production {
     @Column(name = "end_date")
     private LocalDate endDate;
 
-    // URL/path to the production's poster image (stored externally, not as bytes).
-    @Column(name = "poster_image_url")
+    // Poster image stored inline as a base64-encoded string (may be a data URI).
+    // TEXT because base64 payloads far exceed the default varchar length.
+    @Column(name = "poster_image_url", columnDefinition = "TEXT")
     private String posterImageUrl;
 
     @Column(name = "status", nullable = false)

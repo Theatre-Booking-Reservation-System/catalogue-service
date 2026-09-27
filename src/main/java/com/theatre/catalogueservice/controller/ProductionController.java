@@ -1,6 +1,7 @@
 package com.theatre.catalogueservice.controller;
 
 import com.theatre.catalogueservice.model.PerformanceListResponse;
+import com.theatre.catalogueservice.model.ProductionCreateResponse;
 import com.theatre.catalogueservice.model.ProductionListResponse;
 import com.theatre.catalogueservice.model.ProductionRequest;
 import com.theatre.catalogueservice.model.ProductionResponse;
@@ -8,6 +9,7 @@ import com.theatre.catalogueservice.model.ProductionSearchResponse;
 import com.theatre.catalogueservice.model.ProductionSummaryResponse;
 import com.theatre.catalogueservice.service.PerformanceService;
 import com.theatre.catalogueservice.service.ProductionService;
+import com.theatre.catalogueservice.util.Language;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -16,9 +18,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.theatre.catalogueservice.config.AuthenticatedUser;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,6 +34,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @RestController
@@ -54,23 +59,31 @@ public class ProductionController {
 
     @Operation(summary = "Search productions (paginated)",
             description = "Paginated, filterable search for the Productions page. "
-                    + "Filter by free-text (title/genre), status (1=Active, 9=Inactive), and "
-                    + "upcoming (true = release date in the future). Supports page, size and sort "
-                    + "query params, e.g. ?page=0&size=10&sort=releaseDate,desc.")
+                    + "Filter by title, status (1=Active, 9=Inactive), genre, "
+                    + "language (SINHALA/TAMIL/ENGLISH), releaseDate (on or after) and "
+                    + "endDate (on or before). Supports page, size and sort query params, "
+                    + "e.g. ?page=0&size=10&sort=releaseDate,desc.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Matching productions returned"),
             @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
     })
     @GetMapping("/search")
     public ResponseEntity<ProductionSearchResponse> searchProductions(
-            @Parameter(description = "Free-text search over titles and genre")
-            @RequestParam(required = false) String q,
+            @Parameter(description = "Title filter (case-insensitive partial match)")
+            @RequestParam(required = false) String title,
             @Parameter(description = "Exact status filter: 1=Active, 9=Inactive/Archived")
             @RequestParam(required = false) Integer status,
-            @Parameter(description = "true = upcoming (release date in future), false = already running")
-            @RequestParam(required = false) Boolean upcoming,
+            @Parameter(description = "Genre filter (case-insensitive partial match)")
+            @RequestParam(required = false) String genre,
+            @Parameter(description = "Language filter: SINHALA, TAMIL or ENGLISH")
+            @RequestParam(required = false) Language language,
+            @Parameter(description = "Return productions releasing on or after this date (yyyy-MM-dd)")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate releaseDate,
+            @Parameter(description = "Return productions whose run ends on or before this date (yyyy-MM-dd)")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate,
             @Parameter(hidden = true) @PageableDefault(size = 10, sort = "releaseDate") Pageable pageable) {
-        return ResponseEntity.ok(productionService.search(q, status, upcoming, pageable));
+        return ResponseEntity.ok(productionService.search(
+                title, status, genre, language, releaseDate, endDate, pageable));
     }
 
     @Operation(summary = "Production summary counts",
@@ -78,8 +91,10 @@ public class ProductionController {
                     + "active (running), upcoming (releasing later), inactive (archived) and total.")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Summary counts returned"),
-            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+            @ApiResponse(responseCode = "403", description = "Caller is not an ADMIN")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/summary")
     public ResponseEntity<ProductionSummaryResponse> productionSummary() {
         return ResponseEntity.ok(productionService.summary());
@@ -103,10 +118,12 @@ public class ProductionController {
     @ApiResponses({
             @ApiResponse(responseCode = "201", description = "Production created"),
             @ApiResponse(responseCode = "400", description = "Invalid request body"),
-            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT")
+            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+            @ApiResponse(responseCode = "403", description = "Caller is not an ADMIN")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<ProductionResponse> createProduction(@RequestBody ProductionRequest request,
+    public ResponseEntity<ProductionCreateResponse> createProduction(@RequestBody ProductionRequest request,
                                                                @Parameter(hidden = true) @AuthenticationPrincipal AuthenticatedUser user) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(productionService.createProduction(request, user.displayName()));
@@ -118,8 +135,10 @@ public class ProductionController {
             @ApiResponse(responseCode = "200", description = "Production updated"),
             @ApiResponse(responseCode = "400", description = "Invalid request body"),
             @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+            @ApiResponse(responseCode = "403", description = "Caller is not an ADMIN"),
             @ApiResponse(responseCode = "404", description = "No production exists for the given id")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ProductionResponse> updateProduction(
             @Parameter(description = "Unique identifier of the production") @PathVariable UUID id,
@@ -133,8 +152,10 @@ public class ProductionController {
     @ApiResponses({
             @ApiResponse(responseCode = "204", description = "Production deleted"),
             @ApiResponse(responseCode = "401", description = "Missing or invalid JWT"),
+            @ApiResponse(responseCode = "403", description = "Caller is not an ADMIN"),
             @ApiResponse(responseCode = "404", description = "No production exists for the given id")
     })
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduction(
             @Parameter(description = "Unique identifier of the production") @PathVariable UUID id,

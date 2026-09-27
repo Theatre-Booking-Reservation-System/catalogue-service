@@ -1,6 +1,7 @@
 package com.theatre.catalogueservice.service;
 
 import com.theatre.catalogueservice.exception.ServiceException;
+import com.theatre.catalogueservice.model.PerformanceCreateResponse;
 import com.theatre.catalogueservice.model.PerformanceItem;
 import com.theatre.catalogueservice.model.PerformanceListResponse;
 import com.theatre.catalogueservice.model.PerformanceRequest;
@@ -77,20 +78,24 @@ public class PerformanceService {
     }
 
     @Transactional
-    public PerformanceResponse createPerformance(PerformanceRequest request, String email) {
+    public PerformanceCreateResponse createPerformance(PerformanceRequest request, String email) {
         if (!productionRepository.existsById(request.getProductionId())) {
             throw new ServiceException(ErrorCode.PRODUCTION_NOT_FOUND);
         }
 
         Performance performance = new Performance();
         applyRequest(performance, request);
-        performance.setStatus(request.getStatus() != null
-                ? request.getStatus()
-                : ProductionStatus.ACTIVE.getValue());
+        // New performances always start ACTIVE; status is not part of the request.
+        performance.setStatus(ProductionStatus.ACTIVE.getValue());
         performance.setAddedBy(email);
         performance.setAddedDate(LocalDateTime.now());
 
-        return toPerformanceResponse(performanceRepository.save(performance));
+        Performance saved = performanceRepository.save(performance);
+        return PerformanceCreateResponse.builder()
+                .performanceId(saved.getPerformanceId())
+                .statusCode("SUCCESS")
+                .statusDescription("Performance created successfully")
+                .build();
     }
 
     @Transactional
@@ -99,9 +104,6 @@ public class PerformanceService {
                 .orElseThrow(() -> new ServiceException(ErrorCode.PERFORMANCE_NOT_FOUND));
 
         applyRequest(performance, request);
-        if (request.getStatus() != null) {
-            performance.setStatus(request.getStatus());
-        }
         performance.setModifiedBy(email);
         performance.setModifiedDate(LocalDateTime.now());
 
@@ -125,9 +127,6 @@ public class PerformanceService {
         performance.setDate(request.getDate());
         performance.setTime(request.getTime());
         performance.setSessionType(request.getSessionType());
-        performance.setReleaseDate(request.getReleaseDate());
-        performance.setEarlyAccessOpensAt(request.getEarlyAccessOpensAt());
-        performance.setIsEarlyAccessActive(request.getIsEarlyAccessActive());
     }
 
     private PerformanceResponse toPerformanceResponse(Performance p) {
@@ -137,9 +136,6 @@ public class PerformanceService {
                 .date(p.getDate())
                 .time(p.getTime())
                 .sessionType(p.getSessionType())
-                .releaseDate(p.getReleaseDate())
-                .earlyAccessOpensAt(p.getEarlyAccessOpensAt())
-                .isEarlyAccessActive(p.getIsEarlyAccessActive())
                 .status(p.getStatus())
                 .build();
     }
@@ -151,9 +147,6 @@ public class PerformanceService {
                 .date(p.getDate())
                 .time(p.getTime())
                 .sessionType(p.getSessionType())
-                .releaseDate(p.getReleaseDate())
-                .earlyAccessOpensAt(p.getEarlyAccessOpensAt())
-                .isEarlyAccessActive(p.getIsEarlyAccessActive())
                 .status(p.getStatus())
                 .build();
     }
