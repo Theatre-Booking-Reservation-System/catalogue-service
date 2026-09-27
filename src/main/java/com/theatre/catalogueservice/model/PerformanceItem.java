@@ -1,5 +1,6 @@
 package com.theatre.catalogueservice.model;
 
+import com.theatre.catalogueservice.util.Availability;
 import com.theatre.catalogueservice.util.SessionType;
 import lombok.Builder;
 import lombok.Data;
@@ -17,4 +18,6 @@ public class PerformanceItem {
     private LocalTime time;
     private SessionType sessionType;
     private Integer status;
+    // Derived from booked-seat count vs total seats across services.
+    private Availability availability;
 }

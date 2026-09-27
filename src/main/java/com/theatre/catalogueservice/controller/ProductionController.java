@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import com.theatre.catalogueservice.config.AuthenticatedUser;
@@ -30,6 +31,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -173,8 +175,10 @@ public class ProductionController {
     })
     @GetMapping("/{id}/performances")
     public ResponseEntity<PerformanceListResponse> getPerformancesByProductionId(
-            @Parameter(description = "Unique identifier of the production") @PathVariable UUID id) {
-        return ResponseEntity.ok(performanceService.getPerformancesByProductionId(id));
+            @Parameter(description = "Unique identifier of the production") @PathVariable UUID id,
+            @Parameter(hidden = true) @RequestHeader(value = HttpHeaders.AUTHORIZATION, required = false)
+            String authorization) {
+        return ResponseEntity.ok(performanceService.getPerformancesByProductionId(id, authorization));
     }
 
 }
